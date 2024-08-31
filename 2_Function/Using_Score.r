@@ -1,5 +1,27 @@
-{
+process_diff_combined <- function(Diff_HM, dcelltype, selected_hallmark) {
+  # Set names for the list
+  names(Diff_HM) <- dcelltype
   
+  # Combine the list into a single dataframe
+  Diff_combined <- dplyr::bind_rows(Diff_HM)
+  rownames(Diff_combined) <- NULL
+  
+  # Modify the Pathway column
+  Diff_combined <- Diff_combined %>%
+    mutate(Pathway = gsub("HALLMARK-", "", terms))
+  
+  # Modify the Pathway names
+  Diff_combined$Pathway <- gsub('-', '_', Diff_combined$Pathway)
+  
+  # Filter and factor the Diff_combined dataframe
+  Diff_combined_selected <- dplyr::filter(Diff_combined, Pathway %in% selected_hallmark$Name)
+  Diff_combined_selected$Pathway <- factor(Diff_combined_selected$Pathway, levels = selected_hallmark$Name)
+  
+  return(Diff_combined_selected)
+}
+  
+
+
   library(msigdbr)
   library(fgsea)
   library(GSVA)
@@ -102,4 +124,3 @@
   cowplot::plot_grid(plotlist = list(p1,p2,p3),ncol = 3)
   getwd()
   ggsave(filename = '/work/cwt/NACT_OV/2_function/hallmark.epi.pdf',width = 18.3,height = 13.2)
-}
